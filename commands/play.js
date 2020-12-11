@@ -2,7 +2,6 @@ const api = require("../lib/api");
 const joinTemplate = require("../lib/join_template");
 
 module.exports = async ({ say, ack, body, client }) => {
-  console.log(body);
   await ack();
   const createdMessage = await say({
     blocks: joinTemplate(),

@@ -15,11 +15,4 @@ module.exports = async ({ ack, client }) => {
     blocks: gameOverTemplate(activeGameData[activeGameData.winner], false),
   });
   await api.updateGame(activeGame.id, { isActive: false });
-
-  // const activeGameData = activeGame.data();
-  // const newGame = generateGame({
-  //   slackChannelId: activeGame.slackChannelId,
-  //   slackTeamId: activeGame.slackTeamId,
-  //   messageTs:
-  // });
 };
