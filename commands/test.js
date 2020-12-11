@@ -33,5 +33,4 @@ module.exports = async ({ say, body, client }) => {
   }))
 
   const res = await say("hello");
-  console.log(res);
 };

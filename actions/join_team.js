@@ -1,44 +1,37 @@
-const firestore = require("../lib/firestore");
+const api = require("../lib/api");
 const joinTemplate = require("../lib/join_template");
 const winnerTemplate = require("../lib/winner_template");
 
 module.exports = async ({ body, ack, say, client }) => {
   await ack();
-  const activeGameQuery = await firestore
-    .collection("games")
-    .where("isActive", "==", true)
-    .get();
-  if (activeGameQuery.empty) {
-    say("There's no game in progress!");
+  const activeGame = await api.getActiveGame();
+  if (!activeGame) {
+    await say("There's no game in progress!");
     return;
   }
-
-  const activeGameDocumentId = activeGameQuery.docs[0].id;
-  const activeGame = activeGameQuery.docs[0].data();
   const action_id = body.actions[0].action_id;
+  const activeGameData = activeGame.data();
 
-  if (activeGame.team1.length >= 2 && activeGame.team2.length >= 2) {
+  if (activeGameData.team1.length >= 2 && activeGameData.team2.length >= 2) {
     return;
   }
-
-  let teamToJoin = "";
 
   switch (action_id) {
     case "join_team1":
-      if (activeGame.team1.length < 2) {
+      if (activeGameData.team1.length < 2) {
         teamToJoin = "team1";
       }
       break;
     case "join_team2":
-      if (activeGame.team2.length < 2) {
+      if (activeGameData.team2.length < 2) {
         teamToJoin = "team2";
       }
       break;
     case "join_team_random":
-      if (activeGame.team1.length === 2) {
+      if (activeGameData.team1.length === 2) {
         teamToJoin = "team2";
         break;
-      } else if (activeGame.team2.length === 2) {
+      } else if (activeGameData.team2.length === 2) {
         teamToJoin = "team1";
         break;
       }
@@ -52,19 +45,24 @@ module.exports = async ({ body, ack, say, client }) => {
   }
 
   if (teamToJoin) {
-    activeGame[teamToJoin].push(body.user.id);
+    activeGameData[teamToJoin].push(body.user.id);
   }
 
-  await firestore.collection("games").doc(activeGameDocumentId).set(activeGame);
+  await api.updateGame(activeGame.id, activeGameData);
+
   await client.chat.update({
-    channel: activeGame.slackChannelId,
-    ts: activeGame.messageTs,
-    blocks: joinTemplate(activeGame.team1, activeGame.team2),
+    channel: activeGameData.slackChannelId,
+    ts: activeGameData.messageTs,
+    blocks: joinTemplate(activeGameData.team1, activeGameData.team2),
   });
 
-  if (activeGame.team1.length >= 2 && activeGame.team2.length >= 2) {
-    await say({
+  if (activeGameData.team1.length >= 2 && activeGameData.team2.length >= 2) {
+    const createdMessage = await say({
       blocks: winnerTemplate(),
+    });
+
+    await api.updateGame(activeGame.id, {
+      winnerMessageTs: createdMessage.message.ts,
     });
   }
 };
