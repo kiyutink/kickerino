@@ -3,6 +3,13 @@ const joinTemplate = require("../lib/join_template");
 
 module.exports = async ({ say, ack, body, client }) => {
   await ack();
+  const activeGame = await api.getActiveGame();
+  if (activeGame) {
+    await say(
+      "A game is already in progress! First resolve that game and then start a new one."
+    );
+    return;
+  }
   const createdMessage = await say({
     blocks: joinTemplate(),
   });
