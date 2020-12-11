@@ -2,7 +2,6 @@ const api = require("../lib/api");
 const gameOverTemplate = require("../lib/game_over_template");
 
 module.exports = async ({ say, body, ack, client }) => {
-  console.log(body)
   await ack();
   const action_id = body.actions[0].action_id;
   const [, winner] = action_id.split("winner_");
@@ -11,7 +10,6 @@ module.exports = async ({ say, body, ack, client }) => {
     return;
   }
   const activeGameData = activeGame.data();
-  console.log(activeGameData)
 
   await api.updateGame(activeGame.id, { winner });
   await client.chat.update({
