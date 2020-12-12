@@ -16,6 +16,13 @@ module.exports = async ({ body, ack, say, client }) => {
     return;
   }
 
+  if (
+    activeGameData.team1.includes(body.user.id) ||
+    activeGameData.team2.includes(body.user.id)
+  ) {
+    return;
+  }
+
   switch (action_id) {
     case "join_team1":
       if (activeGameData.team1.length < 2) {

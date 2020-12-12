@@ -9,10 +9,33 @@ module.exports = async ({ ack, client }) => {
   }
 
   const activeGameData = activeGame.data();
-  await client.chat.update({
-    ts: activeGameData.winnerMessageTs,
-    channel: activeGameData.slackChannelId,
-    blocks: gameOverTemplate(activeGameData[activeGameData.winner], false),
-  });
+  if (activeGameData.winnerMessageTs) {
+    if (activeGameData.winner) {
+      await client.chat.update({
+        ts: activeGameData.winnerMessageTs,
+        channel: activeGameData.slackChannelId,
+        blocks: gameOverTemplate(activeGameData[activeGameData.winner], false),
+      });
+    } else {
+      await client.chat.delete({
+        ts: activeGameData.winnerMessageTs,
+        channel: activeGameData.slackChannelId,
+      });
+    }
+  }
+
+  if (activeGameData.winner) {
+    await client.chat.update({
+      ts: activeGameData.winnerMessageTs,
+      channel: activeGameData.slackChannelId,
+      blocks: gameOverTemplate(activeGameData[activeGameData.winner], false),
+    });
+  } else {
+    await client.chat.delete({
+      ts: activeGameData.messageTs,
+      channel: activeGameData.slackChannelId,
+    });
+  }
+
   await api.updateGame(activeGame.id, { isActive: false });
 };
