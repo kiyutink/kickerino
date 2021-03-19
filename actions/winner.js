@@ -10,6 +10,9 @@ module.exports = async ({ say, body, ack, client }) => {
     return;
   }
   const activeGameData = activeGame.data();
+  if (activeGameData.winner !== null) {
+    return;
+  }
 
   await api.updateGame(activeGame.id, { winner });
   const loser = winner === "team1" ? "team2" : "team1";
